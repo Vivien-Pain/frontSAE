@@ -7,7 +7,6 @@ import Header from '@/components/layout/Header';
 import Stepper from '@/components/shared/Stepper';
 import TermsModal from '@/components/ui/TermsModal';
 
-// --- Icônes utilitaires ---
 const CheckCircleIcon = () => (
   <svg className="h-6 w-6 text-[#0b644d]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
     <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -19,33 +18,17 @@ export default function ConfirmationPage() {
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isTermsOpen, setIsTermsOpen] = useState(false);
+
   const recaptchaRef = useRef<ReCAPTCHA>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (hasConsented && captchaToken) {
-      // Dans un vrai projet, c'est ici que tu envoies le captchaToken 
-      // et les données du dossier à ton API pour vérification backend.
-      /*
-      const res = await fetch('/api/verify-dossier', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token: captchaToken })
-      });
-      if (!res.ok) {
-         recaptchaRef.current?.reset();
-         setCaptchaToken(null);
-         return;
-      }
-      */
-      
-      console.log('Dossier soumis avec succès ! Token:', captchaToken);
       setIsSubmitted(true);
     }
   };
 
-  // VUE : Message de succès après soumission
   if (isSubmitted) {
     return (
       <div className="min-h-screen bg-white">
@@ -55,7 +38,7 @@ export default function ConfirmationPage() {
             <CheckCircleIcon />
           </div>
           <h1 className="mb-4 text-3xl font-black uppercase tracking-tight text-[#1e2420] sm:text-4xl">
-            Demande envoyée !
+            Demande envoyée
           </h1>
           <p className="mb-8 text-base text-[#4f5851]">
             Votre dossier d'inscription pour l'association a bien été transmis à la mairie de Feytiat.<br className="hidden sm:block" />
@@ -72,16 +55,16 @@ export default function ConfirmationPage() {
     );
   }
 
-  // VUE : Formulaire de confirmation
   return (
     <div className="min-h-screen bg-white">
       <Header />
-
+      
       <main className="mx-auto max-w-7xl px-4 pb-20 sm:px-6">
         <Stepper currentStep={4} />
 
         <div className="mx-auto max-w-3xl">
           <form className="rounded-xl border border-[#d9ded9] p-4 shadow-sm sm:p-8" onSubmit={handleSubmit}>
+            
             <div className="mb-8 text-center sm:text-left">
               <h2 className="mb-2 text-2xl font-black uppercase tracking-tight text-[#1e2420]">
                 Dernière étape avant l'envoi
@@ -91,7 +74,6 @@ export default function ConfirmationPage() {
               </p>
             </div>
 
-            {/* Récapitulatif visuel */}
             <div className="mb-10 rounded-lg bg-[#f7f8f4] p-5 sm:p-7">
               <h3 className="mb-5 text-sm font-bold uppercase tracking-wider text-[#1e2420]">
                 Récapitulatif de votre dossier
@@ -121,7 +103,6 @@ export default function ConfirmationPage() {
               </ul>
             </div>
 
-            {/* Consentement */}
             <div className="mb-8 flex items-start gap-3">
               <input
                 type="checkbox"
@@ -136,7 +117,6 @@ export default function ConfirmationPage() {
               </label>
             </div>
 
-            {/* Le VRAI Composant reCAPTCHA */}
            <div className="mb-10 flex justify-center sm:justify-start">
               <ReCAPTCHA
                 ref={recaptchaRef}
@@ -146,18 +126,17 @@ export default function ConfirmationPage() {
               />
             </div>
 
-            {/* Footer / Boutons d'action */}
             <div className="flex flex-col-reverse justify-between gap-6 border-t border-[#d9ded9] pt-6 sm:flex-row sm:items-center">
               <a href="#" className="text-center text-xs text-[#6d746e] hover:text-[#1e2420] hover:underline sm:text-left">
-                Besoin d'aide ? Contactez la mairie →
+                Besoin d'aide ? Contactez la mairie 
               </a>
-
+              
               <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
                 <Link
                   href="/signup/step3"
                   className="flex-1 rounded-md border border-[#d9ded9] bg-white px-6 py-3 text-center text-xs font-bold text-[#1e2420] transition-colors hover:bg-[#f7f8f4] sm:flex-none"
                 >
-                  ← Retour
+                    Retour
                 </Link>
                 
                 <div className="group relative flex-1 sm:flex-none">
@@ -180,6 +159,7 @@ export default function ConfirmationPage() {
           </form>
         </div>
       </main>
+
       {isTermsOpen && <TermsModal onClose={() => setIsTermsOpen(false)} />}
     </div>
   );

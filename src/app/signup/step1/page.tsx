@@ -1,6 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 import Header from '@/components/layout/Header';
 import HelpSidebar from '@/components/shared/HelpSidebar';
 import Stepper from '@/components/shared/Stepper';
@@ -10,9 +11,43 @@ import Link from 'next/link';
 
 export default function AssociationPage() {
   const router = useRouter();
+  const [formError, setFormError] = useState('');
+  
+  const todayStr = new Date().toISOString().split('T')[0];
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    setFormError('');
+
+    const formData = new FormData(event.currentTarget);
+    const creationDate = formData.get('creationDate') as string;
+    const memberCount = Number(formData.get('memberCount'));
+    const registrationNumber = (formData.get('registrationNumber') as string).trim().toUpperCase();
+    const headOfficeAddress = (formData.get('headOfficeAddress') as string).trim();
+
+    const isRna = /^W\d{9}$/.test(registrationNumber);
+    const isSiret = /^\d{14}$/.test(registrationNumber);
+
+    if (!isRna && !isSiret) {
+      setFormError('Erreur : le numéro de déclaration doit être un RNA valide (ex: W123456789) ou un SIRET valide (14 chiffres exacts sans espace).');
+      return;
+    }
+
+    if (new Date(creationDate) > new Date()) {
+      setFormError('Erreur de déclaration : la date de création de l\'association ne peut pas être dans le futur.');
+      return;
+    }
+    
+    if (memberCount < 2) {
+      setFormError('Erreur : l\'association doit déclarer au minimum 2 membres actifs fondateurs.');
+      return;
+    }
+
+    if (headOfficeAddress.length < 10 || !/\d/.test(headOfficeAddress) || !/[a-zA-Z]/.test(headOfficeAddress)) {
+      setFormError('Erreur : l\'adresse du siège social semble invalide. Veuillez renseigner une adresse complète (ex: 12 rue des Lilas).');
+      return;
+    }
+
     router.push('/signup/step2');
   };
 
@@ -26,6 +61,15 @@ export default function AssociationPage() {
         <div className="mx-auto grid max-w-5xl gap-6 lg:grid-cols-[minmax(0,1fr)_280px]">
           <form onSubmit={handleSubmit} className="rounded-xl border border-[#d9ded9] p-4 shadow-sm sm:p-8">
             
+            {formError && (
+              <div className="mb-8 flex items-start gap-3 rounded-md border border-[#f3dada] bg-[#fdf2f2] p-4 text-[#b54b4b] shadow-sm animate-in fade-in">
+                <svg className="mt-0.5 h-5 w-5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                </svg>
+                <p className="text-sm font-bold leading-relaxed">{formError}</p>
+              </div>
+            )}
+
             <div className="mb-8">
               <h2 className="mb-6 border-l-4 border-[#0b644d] pl-3 text-xs font-bold uppercase tracking-widest text-[#1e2420] sm:mb-8">
                 INFORMATIONS GÉNÉRALES
@@ -33,7 +77,7 @@ export default function AssociationPage() {
               
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6">
                 <ValidatedInput 
-                  label="Nom de l&apos;association *" 
+                  label="Nom de l'association *" 
                   name="associationName" 
                   placeholder="Ex. Les amis du parc" 
                   required
@@ -41,7 +85,8 @@ export default function AssociationPage() {
                 <ValidatedInput 
                   label="Numéro RNA ou SIRET *" 
                   name="registrationNumber" 
-                  placeholder="W872001234" 
+                  placeholder="W123456789 ou 14 chiffres" 
+                  maxLength={14}
                   required
                 />
                 
@@ -49,23 +94,24 @@ export default function AssociationPage() {
                   label="Date de création *" 
                   type="date"
                   name="creationDate" 
+                  max={todayStr}
                   required
                 />
                 <ValidatedInput 
                   label="Nombre de membres *" 
                   type="number"
                   name="memberCount" 
-                  min="1"
+                  min="2"
                   required
                 />
 
                 <div className="sm:col-span-2">
-                  <label className="mb-2 block text-xs font-bold text-[#1e2420]">Catégorie d&apos;activité *</label>
+                  <label className="mb-2 block text-xs font-bold text-[#1e2420]">Catégorie d'activité *</label>
                   <CategorySelector />
                 </div>
 
                 <div className="sm:col-span-2">
-                  <label htmlFor="purpose" className="mb-2 block text-xs font-bold text-[#1e2420]">Objet de l&apos;association *</label>
+                  <label htmlFor="purpose" className="mb-2 block text-xs font-bold text-[#1e2420]">Objet de l'association *</label>
                   <textarea id="purpose" name="purpose" required rows={3} placeholder="Décrivez brièvement les activités de votre association..." className="w-full resize-y rounded-md border border-[#d9ded9] bg-white px-3 py-3 text-sm outline-none focus:border-[#0b644d] focus:ring-1 focus:ring-[#0b644d]" />
                 </div>
 
@@ -77,7 +123,7 @@ export default function AssociationPage() {
 
             <div className="mt-8 flex flex-col-reverse justify-between gap-6 border-t border-[#d9ded9] pt-6 sm:mt-12 sm:flex-row sm:items-center">
               <a href="#" className="text-center text-xs text-[#6d746e] hover:text-[#1e2420] hover:underline sm:text-left">
-                ❔ Besoin d&apos;aide ? Contactez la mairie →
+                  Besoin d'aide ? Contactez la mairie 
               </a>
               
               <div className="flex w-full flex-col items-center gap-4 sm:w-auto sm:flex-row sm:gap-6">
@@ -86,7 +132,7 @@ export default function AssociationPage() {
                     href="/"
                     className="flex-1 rounded-md border border-[#d9ded9] bg-white px-4 py-3 text-center text-xs font-bold text-[#1e2420] transition-colors hover:bg-[#f7f8f4] sm:flex-none sm:px-6"
                   >
-                    ← Retour
+                      Retour
                   </Link>
                   <button
                     type="submit"
@@ -98,6 +144,7 @@ export default function AssociationPage() {
               </div>
             </div>
           </form>
+
           <HelpSidebar />
         </div>
       </main>

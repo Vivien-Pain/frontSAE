@@ -6,7 +6,6 @@ import { useRouter } from 'next/navigation';
 import Header from '@/components/layout/Header';
 import Stepper from '@/components/shared/Stepper';
 
-// --- Icônes utilitaires ---
 const CloudIcon = () => (
   <svg className="mx-auto mb-2 h-8 w-8 text-[#6d746e]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
@@ -31,7 +30,6 @@ const LockIcon = () => (
   </svg>
 );
 
-// --- Fonctions utilitaires ---
 const formatFileSize = (bytes: number) => {
   if (bytes === 0) return '0 Bytes';
   const k = 1024;
@@ -40,7 +38,7 @@ const formatFileSize = (bytes: number) => {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
 };
 
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 Mo
+const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const MAX_OTHER_DOCUMENTS = 3;
 const ALLOWED_TYPES = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'image/jpeg', 'image/png', 'image/webp'];
 
@@ -50,7 +48,6 @@ const validateFile = (file: File): string | null => {
   return null;
 };
 
-// --- Types et Interfaces ---
 type FixedDocumentKey = 'statuts' | 'recepisse' | 'listeBureau' | 'reglement';
 
 interface FileState {
@@ -62,7 +59,6 @@ interface DynamicFileState extends FileState {
   id: string;
 }
 
-// --- Sous-composant indépendant d'Upload ---
 const FileUploader = ({
   title,
   required = false,
@@ -99,7 +95,6 @@ const FileUploader = ({
     }
   };
 
-  // VUE: Fichier uploadé
   if (file) {
     return (
       <div className="flex flex-col gap-2 h-full">
@@ -110,7 +105,7 @@ const FileUploader = ({
               <PdfIcon />
               <div className="overflow-hidden">
                 <p className="truncate text-sm font-bold text-[#1e2420]" title={file.name}>{file.name}</p>
-                <p className="text-xs text-[#6d746e]">{formatFileSize(file.size)} - À l'instant</p>
+                <p className="text-xs text-[#6d746e]">{formatFileSize(file.size)} - à l'instant</p>
               </div>
             </div>
             <div className="flex shrink-0 items-center gap-1.5 rounded-full bg-[#4CAF50] px-2.5 py-1 text-[10px] font-bold text-white">
@@ -118,7 +113,6 @@ const FileUploader = ({
             </div>
           </div>
           
-          {/* Messages d'erreurs en cas d'échec de remplacement */}
           {error && <p className="mt-2 text-[10px] font-bold text-[#b54b4b]">{error}</p>}
           
           <div className="mt-4 flex items-center justify-end gap-2 text-xs font-bold text-[#0b644d]">
@@ -136,7 +130,6 @@ const FileUploader = ({
     );
   }
 
-  // VUE: Zone vide (Drag & Drop)
   return (
     <div className="flex flex-col gap-2 h-full">
       <div className="flex items-center justify-between">
@@ -175,7 +168,6 @@ const FileUploader = ({
         <p className="text-[10px] text-[#6d746e]">PDF, Word ou image - max 5 Mo</p>
       </div>
       
-      {/* Messages d'erreurs ou d'obligations */}
       {error ? (
         <p className="text-[10px] font-bold text-[#b54b4b]">{error}</p>
       ) : highlighted && required ? (
@@ -190,11 +182,9 @@ const FileUploader = ({
   );
 };
 
-// --- Composant principal de la page ---
 export default function DocumentsPage() {
   const router = useRouter();
-  
-  // 1. État des documents principaux (fixes)
+
   const [fixedDocs, setFixedDocs] = useState<Record<FixedDocumentKey, FileState>>({
     statuts: { file: null, error: null },
     recepisse: { file: null, error: null },
@@ -202,11 +192,9 @@ export default function DocumentsPage() {
     reglement: { file: null, error: null },
   });
 
-  // 2. État des documents "Autres" (liste dynamique)
   const [otherDocs, setOtherDocs] = useState<DynamicFileState[]>([]);
   const [otherError, setOtherError] = useState<string | null>(null);
 
-  // Gérer un fichier fixe
   const handleFixedChange = (key: FixedDocumentKey, file: File | null) => {
     if (!file) {
       setFixedDocs(prev => ({ ...prev, [key]: { file: null, error: null } }));
@@ -216,26 +204,26 @@ export default function DocumentsPage() {
     setFixedDocs(prev => ({ ...prev, [key]: { file: err ? null : file, error: err } }));
   };
 
-  // Ajouter un nouveau document dans "Autre"
   const handleAddOtherDoc = (file: File | null) => {
     if (!file) return;
+    
     if (otherDocs.length >= MAX_OTHER_DOCUMENTS) {
       setOtherError(`Vous pouvez ajouter au maximum ${MAX_OTHER_DOCUMENTS} documents complémentaires.`);
       return;
     }
+    
     const err = validateFile(file);
     if (err) {
       setOtherError(err);
       return;
     }
+    
     setOtherError(null);
     setOtherDocs(prev => [...prev, { id: Math.random().toString(36).substring(2, 9), file, error: null }]);
   };
 
-  // Remplacer ou supprimer un document existant dans "Autre"
   const handleReplaceOrRemoveOtherDoc = (id: string, file: File | null) => {
     if (!file) {
-      // Suppression
       setOtherDocs(prev => prev.filter(doc => doc.id !== id));
       return;
     }
@@ -245,14 +233,13 @@ export default function DocumentsPage() {
     ));
   };
 
-  // Validation du formulaire (3 requis)
   const requiredKeys: FixedDocumentKey[] = ['statuts', 'recepisse', 'listeBureau'];
   const isFormValid = requiredKeys.every(key => fixedDocs[key].file !== null);
 
   return (
     <div className="min-h-screen bg-white">
       <Header />
-
+      
       <main className="mx-auto max-w-7xl px-4 pb-20 sm:px-6">
         <Stepper currentStep={3} />
 
@@ -267,23 +254,22 @@ export default function DocumentsPage() {
               </p>
             </div>
 
-            {/* Grille des documents principaux */}
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:gap-8">
               <FileUploader 
                 title="Statuts de l'association" required 
-                highlighted={!fixedDocs.statuts.file} 
+                highlighted={!fixedDocs.statuts.file}
                 file={fixedDocs.statuts.file} error={fixedDocs.statuts.error} 
                 onChange={(f) => handleFixedChange('statuts', f)} 
               />
               <FileUploader 
                 title="Récépissé de préfecture" required 
-                highlighted={!fixedDocs.recepisse.file} 
+                highlighted={!fixedDocs.recepisse.file}
                 file={fixedDocs.recepisse.file} error={fixedDocs.recepisse.error} 
                 onChange={(f) => handleFixedChange('recepisse', f)} 
               />
               <FileUploader 
                 title="Liste des membres du bureau" required 
-                highlighted={!fixedDocs.listeBureau.file} 
+                highlighted={!fixedDocs.listeBureau.file}
                 file={fixedDocs.listeBureau.file} error={fixedDocs.listeBureau.error} 
                 onChange={(f) => handleFixedChange('listeBureau', f)} 
               />
@@ -293,11 +279,9 @@ export default function DocumentsPage() {
                 onChange={(f) => handleFixedChange('reglement', f)} 
               />
               
-              {/* Conteneur pour les "Autres documents" en pleine largeur avec affichage en colonne */}
               <div className="sm:col-span-2 mt-4 pt-6 border-t border-dashed border-[#d9ded9]">
                 <h3 className="mb-6 text-sm font-bold text-[#1e2420]">Documents complémentaires</h3>
                 
-                {/* Empilement vertical en pleine largeur */}
                 <div className="flex flex-col gap-6 lg:gap-8">
                   {otherDocs.map((doc, index) => (
                     <div key={doc.id} className="w-full">
@@ -310,7 +294,6 @@ export default function DocumentsPage() {
                     </div>
                   ))}
                   
-                  {/* Le bloc vide pour ajouter un nouveau document, qui reste en dessous */}
                   {otherDocs.length < MAX_OTHER_DOCUMENTS ? (
                     <div className="w-full">
                       <FileUploader 
@@ -325,10 +308,8 @@ export default function DocumentsPage() {
                   )}
                 </div>
               </div>
-
             </div>
 
-            {/* Bannière de sécurité */}
             <div className="mt-10 flex items-center gap-4 rounded-lg bg-[#f2f7f5] p-5 text-sm text-[#4f5851]">
               <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#0b644d]/10">
                 <LockIcon />
@@ -339,15 +320,15 @@ export default function DocumentsPage() {
               </p>
             </div>
 
-            {/* Footer */}
             <div className="mt-10 flex flex-col-reverse justify-between gap-6 border-t border-[#d9ded9] pt-6 sm:flex-row sm:items-center">
               <a href="#" className="text-center text-xs text-[#6d746e] hover:text-[#1e2420] hover:underline sm:text-left">
-                Besoin d'aide ? Contactez la mairie →
+                Besoin d'aide ? Contactez la mairie 
               </a>
+              
               <div className="flex w-full flex-col items-center gap-4 sm:w-auto sm:flex-row sm:gap-6">
                 <div className="flex w-full gap-3 sm:w-auto">
                   <Link href="/signup/step2" className="flex-1 rounded-md border border-[#d9ded9] bg-white px-4 py-3 text-center text-xs font-bold text-[#1e2420] transition-colors hover:bg-[#f7f8f4] sm:flex-none sm:px-6">
-                    ← Retour
+                      Retour
                   </Link>
                   <div className="group relative flex-1 sm:flex-none">
                     <button
@@ -367,6 +348,7 @@ export default function DocumentsPage() {
                 </div>
               </div>
             </div>
+
           </form>
         </div>
       </main>

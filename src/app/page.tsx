@@ -13,6 +13,7 @@ export default function Home() {
         <Link href="/" aria-label="Accueil Feytiat">
           <Image className="home-logo" src="/assets/logo-feytiat.svg" alt="Logo Feytiat" width={112} height={48} priority />
         </Link>
+        
         {isConnected ? (
           <div className="home-account">
             <Link href="/profile">Profil</Link>
@@ -25,15 +26,18 @@ export default function Home() {
           </div>
         )}
       </header>
+
       <section className="home-content" aria-labelledby="home-title">
         <p className="home-welcome">Accueil</p>
         <h1 id="home-title">Bienvenue</h1>
+        
         <div className="home-actions">
           <Link href="/subvention">Demande de subvention</Link>
           <Link href="/salle">Demande de salle</Link>
-          <Link href="/signup/step1">Demande de matériel</Link>
+          <Link href="/materiel">Demande de matériel</Link>
         </div>
       </section>
+
       <button className="home-preview" type="button" onClick={() => setIsConnected((value) => !value)}>
         Aperçu : {isConnected ? 'connecté' : 'non connecté'}
       </button>

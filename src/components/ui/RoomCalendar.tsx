@@ -20,7 +20,7 @@ const getRoomBg = (colorClass: string) => {
   return map[colorClass] || 'bg-transparent';
 };
 
-const getMockReservations = (date: Date, filter: string, rooms: any[]) => {
+export const getMockReservations = (date: Date, filter: string, rooms: any[]) => {
   const seed = date.getDate() + date.getMonth();
   const numRes = seed % 4;
   
@@ -59,10 +59,13 @@ interface RoomCalendarProps {
 }
 
 export default function RoomCalendar({ rooms, selectedDate, onDateSelect, onNextStep }: RoomCalendarProps) {
-  const [viewDate, setViewDate] = useState(new Date(2026, 10, 16)); 
+  const [viewDate, setViewDate] = useState(new Date()); 
   const [calendarView, setCalendarView] = useState<'month' | 'week' | 'day'>('month');
   const [isDayMenuOpen, setIsDayMenuOpen] = useState(false);
   const [roomFilter, setRoomFilter] = useState('Toutes les salles');
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
 
   const displayDays = useMemo(() => {
     const baseDate = new Date(viewDate);
@@ -235,20 +238,22 @@ export default function RoomCalendar({ rooms, selectedDate, onDateSelect, onNext
             if (!dateObj) return <div key={index} className="hidden sm:block bg-gray-50/50 border-r border-b border-[#d9ded9]" />;
             
             const isSelected = selectedDate && isSameDay(dateObj, selectedDate);
+            const isToday = isSameDay(dateObj, today);
+            const isPast = dateObj.getTime() < today.getTime();
             const dayReservations = getMockReservations(dateObj, roomFilter, rooms);
-            const isToday = isSameDay(dateObj, new Date(2026, 10, 21));
             
             return (
               <div
                 key={index}
                 onClick={() => {
+                  if (isPast) return;
                   onDateSelect(dateObj);
                   setIsDayMenuOpen(true);
                 }}
                 className={`
-                  group flex flex-col border-b sm:border-r border-[#d9ded9] cursor-pointer transition-colors relative
+                  group flex flex-col border-b sm:border-r border-[#d9ded9] transition-colors relative
                   ${calendarView === 'week' ? 'min-h-[160px]' : calendarView === 'month' ? 'min-h-[110px]' : 'min-h-[300px]'}
-                  ${isSelected ? 'bg-[#f2f7f5] ring-inset ring-2 ring-[#0b644d]' : 'hover:bg-[#f7f8f4] bg-white'}
+                  ${isPast ? 'bg-[#f7f8f4] opacity-60 cursor-not-allowed' : isSelected ? 'bg-[#f2f7f5] ring-inset ring-2 ring-[#0b644d] cursor-pointer' : 'hover:bg-[#f7f8f4] bg-white cursor-pointer'}
                 `}
               >
                 <div className={`
@@ -298,7 +303,7 @@ export default function RoomCalendar({ rooms, selectedDate, onDateSelect, onNext
                   )}
                 </div>
 
-                <div className="absolute inset-x-0 bottom-0 h-1 bg-[#0b644d] opacity-0 group-hover:opacity-100 transition-opacity" />
+                {!isPast && <div className="absolute inset-x-0 bottom-0 h-1 bg-[#0b644d] opacity-0 group-hover:opacity-100 transition-opacity" />}
               </div>
             );
           })}
@@ -324,7 +329,7 @@ export default function RoomCalendar({ rooms, selectedDate, onDateSelect, onNext
                   <div className="w-12 h-12 bg-[#f2f7f5] rounded-full flex items-center justify-center mx-auto mb-1 text-[#0b644d]">
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
                   </div>
-                  <strong className="text-xl font-black text-[#1e2420]">{rooms.length} salles disponibles</strong>
+                  <strong className="text-xl font-black text-[#1e2420]">{rooms.length} salles au catalogue</strong>
                   <p className="text-xs text-[#6d746e]">Pour la journée complète.</p>
                 </>
               ) : (
@@ -333,7 +338,7 @@ export default function RoomCalendar({ rooms, selectedDate, onDateSelect, onNext
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                   </div>
                   <strong className="text-xl font-black text-[#1e2420] uppercase">{visibleRooms[0]?.name ?? rooms[0].name}</strong>
-                  <p className="text-xs text-[#6d746e]">Salle disponible pour la journée entière.</p>
+                  <p className="text-xs text-[#6d746e]">Voir la disponibilité de cette salle pour la journée.</p>
                 </>
               )}
               
@@ -342,7 +347,7 @@ export default function RoomCalendar({ rooms, selectedDate, onDateSelect, onNext
                 type="button" 
                 onClick={() => { setIsDayMenuOpen(false); onNextStep(); }}
               >
-                {roomFilter === 'Toutes les salles' ? 'Voir le catalogue' : 'Réserver la salle'}
+                Passer à la sélection
               </button>
             </div>
           </div>
