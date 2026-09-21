@@ -1,4 +1,4 @@
-# 🏗️ Architecture Front-End - Guide de l'Équipe
+# Architecture Front-End - Guide de l'Équipe
 
 Ce document définit l'architecture, les conventions et les bonnes pratiques à respecter par toute l'équipe front-end pour garantir un code propre, maintenable et évolutif.
 
